@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Højholt Hudpleje — Økonomi</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+:root{--bg:#0a0e17;--c1:#111827;--c2:#1a2332;--bd:#1e293b;--t:#e2e8f0;--tm:#94a3b8;--a:#38bdf8;--g:#22c55e;--y:#eab308;--r:#ef4444;--p:#a78bfa;--o:#fb923c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);min-height:100vh}
+
+/* Login */
+.login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000}
+.login-box{width:100%;max-width:360px;padding:2.5rem;border-radius:16px;background:var(--c1);border:1px solid var(--bd)}
+.login-box h1{text-align:center;font-size:1.5rem;font-weight:700;color:var(--a);margin-bottom:.25rem}
+.login-box .sub{text-align:center;color:var(--tm);font-size:.85rem;margin-bottom:2rem}
+.login-box label{display:block;font-size:.65rem;color:var(--tm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
+.login-box input{width:100%;padding:.55rem .75rem;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--t);font-family:inherit;font-size:.85rem;outline:none;margin-bottom:1rem}
+.login-box input:focus{border-color:var(--a)}
+.login-box button{width:100%;padding:.65rem;border-radius:8px;border:none;background:var(--a);color:var(--bg);font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+.login-box button:hover{opacity:.9}
+.login-error{color:var(--r);font-size:.8rem;margin-bottom:.75rem}
+.hidden{display:none!important}
+
+/* Dashboard */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(10,14,23,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:.75rem 2rem}
+.topbar h1{font-size:1.15rem;font-weight:700;color:var(--a)}
+.topbar .user{display:flex;align-items:center;gap:.75rem}
+.topbar .badge{font-size:.7rem;padding:.3rem .6rem;border-radius:6px;background:var(--bd);color:var(--tm)}
+.topbar .logout{font-size:.7rem;padding:.3rem .6rem;border-radius:6px;background:var(--bd);color:var(--tm);border:none;cursor:pointer;font-family:inherit}
+.topbar .logout:hover{color:var(--t)}
+.ctn{max-width:1280px;margin:0 auto;padding:1.5rem 2rem 3rem}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem}
+.section-head h2{font-size:1.2rem;font-weight:700}
+.section-head .sub{color:var(--tm);font-size:.8rem;margin-top:.25rem}
+.section-head .right{color:var(--tm);font-size:.75rem}
+.kr{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem;margin-bottom:1.5rem}
+.kc{background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:1rem 1.1rem}
+.kl{font-size:.65rem;color:var(--tm);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem}
+.kv{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
+.ks{font-size:.7rem;margin-top:.2rem;color:var(--tm)}
+.card{background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:1.25rem;margin-bottom:.75rem}
+.card-t{font-size:.85rem;font-weight:600;color:var(--tm);margin-bottom:.75rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+.ch-wrap{height:260px;position:relative}
+table.dt{width:100%;border-collapse:collapse;font-size:.72rem;margin-top:.5rem}
+table.dt th{text-align:left;padding:.45rem .5rem;color:var(--tm);font-weight:500;border-bottom:1px solid var(--bd);white-space:nowrap}
+table.dt td{padding:.45rem .5rem;border-bottom:1px solid rgba(30,41,59,.3);white-space:nowrap}
+table.dt .hi{font-weight:600}
+table.dt .pos{color:var(--g)}
+table.dt .neg{color:var(--r)}
+table.dt .r{text-align:right}
+table.dt .sep{border-top:2px solid var(--bd)}
+.insight{background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:.8rem;line-height:1.5}
+.insight strong{color:var(--a)}
+.ft{margin-top:2rem;text-align:center;color:var(--tm);font-size:.7rem;padding:1rem}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-overlay" id="loginScreen">
+<div class="login-box">
+<h1>Højholt Hudpleje</h1>
+<div class="sub">Økonomi Dashboard</div>
+<label>Brugernavn</label>
+<input type="text" id="loginUser" placeholder="Brugernavn">
+<label>Adgangskode</label>
+<input type="password" id="loginPass" placeholder="••••••••">
+<div class="login-error hidden" id="loginErr">Forkert brugernavn eller adgangskode</div>
+<button onclick="doLogin()">Log ind</button>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="hidden" id="dashboard">
+<div class="topbar">
+<h1>Højholt Hudpleje</h1>
+<div class="user">
+<span class="badge" id="userBadge"></span>
+<button class="logout" onclick="doLogout()">Log ud</button>
+</div>
+</div>
+<div class="ctn">
+<div class="section-head">
+<div><h2>Økonomi — YOY Sammenligning</h2><div class="sub">Okt–Feb · 2024/25 vs. 2025/26</div></div>
+<div class="right">Fra e-conomic</div>
+</div>
+<div class="kr" id="kpis"></div>
+<div class="g2">
+<div class="card"><div class="card-t">Omsætning — YOY sammenligning</div><div class="ch-wrap"><canvas id="chRev"></canvas></div></div>
+<div class="card"><div class="card-t">Resultat — YOY sammenligning</div><div class="ch-wrap"><canvas id="chResult"></canvas></div></div>
+</div>
+<div class="g3">
+<div class="card"><div class="card-t">Dækningsbidrag</div><div class="ch-wrap"><canvas id="chDB"></canvas></div></div>
+<div class="card"><div class="card-t">Lønninger (netto, efter refusion)</div><div class="ch-wrap"><canvas id="chLon"></canvas></div></div>
+<div class="card"><div class="card-t">Lønrefusion</div><div class="ch-wrap"><canvas id="chRef"></canvas></div></div>
+</div>
+<div class="g2">
+<div class="card"><div class="card-t">Omsætning — behandlinger vs. produkter</div><div class="ch-wrap"><canvas id="chMix"></canvas></div></div>
+<div class="card"><div class="card-t">YOY vækst per måned</div><div class="ch-wrap"><canvas id="chGrowth"></canvas></div></div>
+</div>
+<div class="card"><div class="card-t">Detaljeret sammenligning (kr) — positive tal = overskud/indtægt</div><div id="tableWrap"></div></div>
+<div class="insight" id="insights"></div>
+<div class="ft">Højholt Hudpleje ApS · CVR 40494855 · Data fra e-conomic</div>
+</div>
+</div>
+
+<script>
+// --- AUTH ---
+const USERS={admin:{pass:"hojholt2026",role:"Ejer"},revisor:{pass:"revisor2026",role:"Revisor"}};
+
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus()});
+
+function doLogin(){
+const u=document.getElementById('loginUser').value.toLowerCase().trim();
+const p=document.getElementById('loginPass').value;
+const usr=USERS[u];
+if(usr&&usr.pass===p){
+document.getElementById('loginScreen').classList.add('hidden');
+document.getElementById('dashboard').classList.remove('hidden');
+document.getElementById('userBadge').textContent=usr.role+': '+u;
+initDashboard();
+}else{
+document.getElementById('loginErr').classList.remove('hidden');
+}}
+
+function doLogout(){
+document.getElementById('loginScreen').classList.remove('hidden');
+document.getElementById('dashboard').classList.add('hidden');
+document.getElementById('loginUser').value='';
+document.getElementById('loginPass').value='';
+document.getElementById('loginErr').classList.add('hidden');
+}
+
+// --- DATA ---
+const M=['Okt','Nov','Dec','Jan','Feb'];
+const D={
+rev24:[354427,294625,390567,290715,366663],
+beh24:[234565,191328,218299,224242,258276],
+prod24:[124076,83151,105948,90770,123268],
+db24:[213814,253935,331630,213804,269991],
+lon24:[151555,181047,139574,165553,199558],
+ref24:[45008,30149,83077,42328,27384],
+result24:[13724,5704,131428,-3177,8805],
+rev25:[465218,480513,476898,369970,366965],
+beh25:[340966,257489,278036,283230,250888],
+prod25:[127877,175622,134073,123795,128185],
+db25:[292651,319826,380155,318636,276156],
+lon25:[230834,238850,257653,277010,245149],
+ref25:[0,1436,30589,695,0],
+sygeLon:[15725,22373,26017,25772,45620],
+result25:[-14073,27370,50959,-4752,-634],
+};
+
+const sum=a=>a.reduce((s,v)=>s+v,0);
+const fmtK=v=>(Math.abs(v)>=1000?(v/1000).toFixed(0)+'k':v.toFixed(0));
+const fmtN=v=>Math.round(v).toLocaleString('da-DK');
+const pct=(a,b)=>b!==0?Math.round((a-b)/Math.abs(b)*100):0;
+
+function initDashboard(){
+Chart.defaults.color='#94a3b8';Chart.defaults.borderColor='#1e293b';Chart.defaults.font.family='DM Sans';
+
+const tRev24=sum(D.rev24),tRev25=sum(D.rev25);
+const tRes24=sum(D.result24),tRes25=sum(D.result25);
+const tRef24=sum(D.ref24),tRef25=sum(D.ref25);
+const revGrowth=pct(tRev25,tRev24);
+const growth=D.rev25.map((v,i)=>Math.round((v-D.rev24[i])/D.rev24[i]*100));
+
+// KPIs
+document.getElementById('kpis').innerHTML=`
+<div class="kc"><div class="kl">Omsætning 25/26</div><div class="kv" style="color:var(--g)">${(tRev25/1e6).toFixed(2)}M</div><div class="ks">vs. ${(tRev24/1e6).toFixed(2)}M året før</div></div>
+<div class="kc"><div class="kl">Oms. vækst YOY</div><div class="kv" style="color:var(--g)">+${revGrowth}%</div><div class="ks">+${fmtK(tRev25-tRev24)} mere</div></div>
+<div class="kc"><div class="kl">Resultat 25/26</div><div class="kv" style="color:${tRes25>=0?'var(--g)':'var(--r)'}">+${Math.round(tRes25/1000)}k</div><div class="ks">vs. +${Math.round(tRes24/1000)}k året før</div></div>
+<div class="kc"><div class="kl">Lønrefusion</div><div class="kv" style="color:var(--r)">${Math.round(tRef25/1000)}k</div><div class="ks" style="color:var(--r)">vs. ${Math.round(tRef24/1000)}k året før</div></div>
+<div class="kc"><div class="kl">Gns. oms./md</div><div class="kv">${Math.round(tRev25/5/1000)}k</div><div class="ks">vs. ${Math.round(tRev24/5/1000)}k året før</div></div>`;
+
+const opts=(suffix='kr')=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toLocaleString('da-DK')+' '+suffix}}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'rgba(30,41,59,.5)'}},x:{grid:{display:false}}}});
+
+// Revenue YOY
+new Chart(document.getElementById('chRev'),{type:'bar',data:{labels:M,datasets:[
+{label:'24/25',data:D.rev24,backgroundColor:'#94a3b866',borderRadius:4,barPercentage:.7},
+{label:'25/26',data:D.rev25,backgroundColor:'#38bdf8cc',borderRadius:4,barPercentage:.7}
+]},options:opts()});
+
+// Result YOY
+new Chart(document.getElementById('chResult'),{type:'bar',data:{labels:M,datasets:[
+{label:'24/25',data:D.result24,backgroundColor:D.result24.map(v=>v>=0?'#94a3b866':'#ef444466'),borderRadius:4,barPercentage:.7},
+{label:'25/26',data:D.result25,backgroundColor:D.result25.map(v=>v>=0?'#22c55ecc':'#ef4444cc'),borderRadius:4,barPercentage:.7}
+]},options:opts()});
+
+// Dækningsbidrag
+new Chart(document.getElementById('chDB'),{type:'line',data:{labels:M,datasets:[
+{label:'24/25',data:D.db24,borderColor:'#94a3b8',borderDash:[5,5],pointRadius:3,borderWidth:2,fill:false},
+{label:'25/26',data:D.db25,borderColor:'#38bdf8',pointRadius:4,pointBackgroundColor:'#38bdf8',borderWidth:2,fill:false}
+]},options:opts()});
+
+// Lønninger netto
+const lonNet24=D.lon24.map((v,i)=>v-D.ref24[i]);
+const lonNet25=D.lon25.map((v,i)=>v-D.ref25[i]);
+new Chart(document.getElementById('chLon'),{type:'line',data:{labels:M,datasets:[
+{label:'24/25 netto',data:lonNet24,borderColor:'#94a3b8',borderDash:[5,5],pointRadius:3,borderWidth:2,fill:false},
+{label:'25/26 netto',data:lonNet25,borderColor:'#ef4444',pointRadius:4,pointBackgroundColor:'#ef4444',borderWidth:2,fill:false}
+]},options:opts()});
+
+// Lønrefusion
+new Chart(document.getElementById('chRef'),{type:'bar',data:{labels:M,datasets:[
+{label:'24/25',data:D.ref24,backgroundColor:'#94a3b866',borderRadius:4,barPercentage:.7},
+{label:'25/26',data:D.ref25,backgroundColor:'#22c55ecc',borderRadius:4,barPercentage:.7}
+]},options:opts()});
+
+// Revenue mix
+new Chart(document.getElementById('chMix'),{type:'bar',data:{labels:M.map(m=>'24 '+m).concat(M.map(m=>'25 '+m)),datasets:[
+{label:'Behandlinger',data:[...D.beh24,...D.beh25],backgroundColor:[...Array(5).fill('#38bdf866'),...Array(5).fill('#38bdf8cc')],borderRadius:3},
+{label:'Produkter',data:[...D.prod24,...D.prod25],backgroundColor:[...Array(5).fill('#a78bfa66'),...Array(5).fill('#a78bfacc')],borderRadius:3}
+]},options:{...opts(),scales:{y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'rgba(30,41,59,.5)'}},x:{stacked:true,grid:{display:false}}}}});
+
+// YOY growth %
+new Chart(document.getElementById('chGrowth'),{type:'bar',data:{labels:M,datasets:[
+{label:'Omsætningsvækst %',data:growth,backgroundColor:growth.map(v=>v>=0?'#22c55ecc':'#ef4444cc'),borderRadius:6,barPercentage:.5}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}},scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(30,41,59,.5)'}},x:{grid:{display:false}}}}});
+
+// Table
+const rc=v=>v>=0?'pos':'neg';
+const fT=v=>(v>=0?'+':'')+fmtN(v);
+const row=(label,a24,a25,cls='')=>{
+const t24=sum(a24),t25=sum(a25);
+return`<tr class="${cls}"><td class="hi">${label}</td>${a24.map((v,i)=>`<td class="r">${fmtN(v)}</td><td class="r">${fmtN(a25[i])}</td>`).join('')}<td class="r hi">${fmtN(t24)}</td><td class="r hi">${fmtN(t25)}</td><td class="r hi ${rc(pct(t25,t24))}">${pct(t25,t24)>=0?'+':''}${pct(t25,t24)}%</td></tr>`;
+};
+document.getElementById('tableWrap').innerHTML=`<table class="dt">
+<tr><th></th>${M.map(m=>`<th class="r" colspan="2">${m}</th>`).join('')}<th class="r" colspan="2">Total</th><th class="r">YOY</th></tr>
+<tr><th></th>${M.map(()=>`<th class="r" style="font-size:.6rem;color:var(--tm)">24/25</th><th class="r" style="font-size:.6rem;color:var(--a)">25/26</th>`).join('')}<th class="r" style="font-size:.6rem;color:var(--tm)">24/25</th><th class="r" style="font-size:.6rem;color:var(--a)">25/26</th><th class="r" style="font-size:.6rem">Δ</th></tr>
+${row('Omsætning',D.rev24,D.rev25)}
+${row('Behandlinger',D.beh24,D.beh25)}
+${row('Produkter',D.prod24,D.prod25)}
+${row('Dækningsbidrag',D.db24,D.db25)}
+${row('Lønninger',D.lon24,D.lon25)}
+${row('Lønrefusion',D.ref24,D.ref25)}
+${row('Resultat',D.result24,D.result25,'sep')}
+</table>`;
+
+// Insights
+document.getElementById('insights').innerHTML=`
+<strong>Nøgle-indsigter YOY:</strong><br>
+• <strong>Omsætningen vokset ${revGrowth}%</strong> — fra ${(tRev24/1e6).toFixed(2)}M til ${(tRev25/1e6).toFixed(2)}M (+${fmtN(tRev25-tRev24)} kr).<br>
+• <strong>November: +${growth[1]}% YOY</strong> — største vækst. Stærkere Black Friday/julesalg i 25/26.<br>
+• <strong>Lønrefusion faldet drastisk:</strong> fra ${Math.round(tRef24/1000)}k til ${Math.round(tRef25/1000)}k (${pct(tRef25,tRef24)}%).<br>
+• <strong>Sygeløn: ${Math.round(sum(D.sygeLon)/1000)}k</strong> over 5 mdr. — stigende tendens, ikke budgetteret.<br>
+• <strong>Resultat: +${Math.round(tRes25/1000)}k</strong> vs. +${Math.round(tRes24/1000)}k året før. Dec 24 havde ekstraordinær refusion på 83k som skævvrider.`;
+}
+</script>
+</body>
+</html>
